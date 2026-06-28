@@ -1,6 +1,8 @@
 const originalDescriptors = [];
 
 function overrideGetter(target, key, value) {
+  if (!target) return;
+
   try {
     const original = Object.getOwnPropertyDescriptor(target, key);
 
@@ -22,13 +24,20 @@ function overrideGetter(target, key, value) {
 export const onLoad = () => {
   console.log("[PC Device Spoofer] Loaded");
 
-  overrideGetter(Navigator.prototype, "userAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-  overrideGetter(Navigator.prototype, "platform", "Win32");
-  overrideGetter(Navigator.prototype, "hardwareConcurrency", 8);
-  overrideGetter(Navigator.prototype, "maxTouchPoints", 0);
-  overrideGetter(Navigator.prototype, "vendor", "Google Inc.");
+  if (typeof Navigator !== "undefined" && Navigator.prototype) {
+    overrideGetter(
+      Navigator.prototype,
+      "userAgent",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    );
 
-  if ("screen" in window) {
+    overrideGetter(Navigator.prototype, "platform", "Win32");
+    overrideGetter(Navigator.prototype, "hardwareConcurrency", 8);
+    overrideGetter(Navigator.prototype, "maxTouchPoints", 0);
+    overrideGetter(Navigator.prototype, "vendor", "Google Inc.");
+  }
+
+  if (typeof Screen !== "undefined" && Screen.prototype) {
     overrideGetter(Screen.prototype, "width", 1920);
     overrideGetter(Screen.prototype, "height", 1080);
     overrideGetter(Screen.prototype, "availWidth", 1920);
