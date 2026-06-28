@@ -1,14 +1,1 @@
-{
-  "name": "PC Device Spoofer",
-  "description": "Attempts to make local browser-like device values look like desktop values.",
-  "authors": [
-    {
-      "name": "xohus",
-      "id": "0"
-    }
-  ],
-  "main": "index.js",
-  "vendetta": {
-    "icon": "ic_desktop_windows"
-  }
-}
+{"name":"PC Device Spoofer","description":"Attempts to make local browser-like device values look like desktop values.","authors":[{"name":"xohus"}],"main":"index.js","vendetta":{"icon":"ic_desktop_windows"},"hash":"162b9f372394503538f8d27ffcc3d31a953b39afbe862967014172b2c45430ce"}
