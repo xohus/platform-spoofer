@@ -1,11 +1,14 @@
 {
-    "name": "PC Device Spoofer",
-    "description": "Spoofs mobile device to appear as PC",
-    "version": "1.0.0",
-    "main": "index.js",
-    "authors": ["xohus"],
-    "tags": ["utility", "spoofing"],
-    "vendetta": {
-        "icon": "device"
+  "name": "PC Device Spoofer",
+  "description": "Attempts to make local browser-like device values look like desktop values.",
+  "authors": [
+    {
+      "name": "xohus",
+      "id": "0"
     }
+  ],
+  "main": "index.js",
+  "vendetta": {
+    "icon": "ic_desktop_windows"
+  }
 }
