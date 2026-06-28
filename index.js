@@ -1,7 +1,7 @@
 (function(exports, metro, common, lazy, api, plugin) {
   "use strict";
 
-  const originalDescriptors = [];
+  let originalDescriptors = [];
 
   function overrideGetter(target, key, value) {
     if (!target) return;
@@ -24,13 +24,11 @@
     }
   }
 
-  function load() {
+  function onLoad() {
     console.log("[PC Device Spoofer] Loaded");
 
-    const nav =
-      typeof navigator !== "undefined"
-        ? navigator
-        : null;
+    const nav = typeof navigator !== "undefined" ? navigator : null;
+    const scr = typeof screen !== "undefined" ? screen : null;
 
     if (nav) {
       overrideGetter(nav, "userAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
@@ -40,15 +38,15 @@
       overrideGetter(nav, "vendor", "Google Inc.");
     }
 
-    if (typeof screen !== "undefined") {
-      overrideGetter(screen, "width", 1920);
-      overrideGetter(screen, "height", 1080);
-      overrideGetter(screen, "availWidth", 1920);
-      overrideGetter(screen, "availHeight", 1040);
+    if (scr) {
+      overrideGetter(scr, "width", 1920);
+      overrideGetter(scr, "height", 1080);
+      overrideGetter(scr, "availWidth", 1920);
+      overrideGetter(scr, "availHeight", 1040);
     }
   }
 
-  function unload() {
+  function onUnload() {
     console.log("[PC Device Spoofer] Unloaded");
 
     for (const item of originalDescriptors.reverse()) {
@@ -63,17 +61,12 @@
       }
     }
 
-    originalDescriptors.length = 0;
+    originalDescriptors = [];
   }
 
   const index = {
-    onLoad() {
-      load();
-    },
-
-    onUnload() {
-      unload();
-    }
+    onLoad,
+    onUnload
   };
 
   exports.default = index;
