@@ -1,0 +1,13 @@
+{
+    "name": "pc-device-spoofer",
+    "version": "1.0.0",
+    "description": "Spoofs mobile device to appear as PC",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "keywords": ["vendetta", "plugin", "spoofing"],
+    "author": "xohus",
+    "license": "MIT",
+    "dependencies": {}
+}
