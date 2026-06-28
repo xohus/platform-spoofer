@@ -1,67 +1,79 @@
 (function(exports, metro, common, lazy, api, plugin) {
   "use strict";
 
-  let originalDescriptors = [];
+  let unpatches = [];
 
-  function overrideGetter(target, key, value) {
-    if (!target) return;
-
+  function safeStore(name) {
     try {
-      const original = Object.getOwnPropertyDescriptor(target, key);
-
-      originalDescriptors.push({
-        target,
-        key,
-        original
-      });
-
-      Object.defineProperty(target, key, {
-        configurable: true,
-        get: () => value
-      });
-    } catch (err) {
-      console.log("[PC Device Spoofer] Failed to override " + key, err);
+      return metro.findByStoreName?.(name) || metro.findByStoreNameLazy?.(name);
+    } catch {
+      return null;
     }
+  }
+
+  function getStatus(realSessions) {
+    try {
+      const first = Object.values(realSessions || {})[0];
+      return first?.status || "online";
+    } catch {
+      return "online";
+    }
+  }
+
+  function makeDesktopSession(realSessions) {
+    const base = (() => {
+      try {
+        return Object.values(realSessions || {})[0] || {};
+      } catch {
+        return {};
+      }
+    })();
+
+    return {
+      desktop: {
+        ...base,
+        sessionId: "desktop",
+        status: getStatus(realSessions),
+        clientInfo: {
+          ...(base.clientInfo || {}),
+          client: "desktop",
+          os: "Windows"
+        }
+      }
+    };
   }
 
   function onLoad() {
     console.log("[PC Device Spoofer] Loaded");
 
-    const nav = typeof navigator !== "undefined" ? navigator : null;
-    const scr = typeof screen !== "undefined" ? screen : null;
+    const SessionsStore = safeStore("SessionsStore");
 
-    if (nav) {
-      overrideGetter(nav, "userAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-      overrideGetter(nav, "platform", "Win32");
-      overrideGetter(nav, "hardwareConcurrency", 8);
-      overrideGetter(nav, "maxTouchPoints", 0);
-      overrideGetter(nav, "vendor", "Google Inc.");
+    if (SessionsStore?.getSessions) {
+      unpatches.push(
+        api.patcher.instead("getSessions", SessionsStore, (args, original) => {
+          const realSessions = original(...args);
+          return makeDesktopSession(realSessions);
+        })
+      );
     }
 
-    if (scr) {
-      overrideGetter(scr, "width", 1920);
-      overrideGetter(scr, "height", 1080);
-      overrideGetter(scr, "availWidth", 1920);
-      overrideGetter(scr, "availHeight", 1040);
-    }
+    try {
+      SessionsStore?.emitChange?.();
+    } catch {}
+
+    console.log("[PC Device Spoofer] Patched local SessionsStore to desktop");
   }
 
   function onUnload() {
     console.log("[PC Device Spoofer] Unloaded");
 
-    for (const item of originalDescriptors.reverse()) {
+    for (const unpatch of unpatches) {
       try {
-        if (item.original) {
-          Object.defineProperty(item.target, item.key, item.original);
-        } else {
-          delete item.target[item.key];
-        }
-      } catch (err) {
-        console.log("[PC Device Spoofer] Failed to restore " + item.key, err);
-      }
+        unpatch();
+      } catch {}
     }
 
-    originalDescriptors = [];
+    unpatches = [];
   }
 
   const index = {
