@@ -1,75 +1,55 @@
-module.exports = {
-    // Plugin metadata
-    name: "PC Device Spoofer",
-    description: "Spoofs mobile device to appear as PC",
-    authors: ["yourname"],
-    
-    // Main plugin code
-    start() {
-        // Override navigator.userAgent
-        Object.defineProperty(navigator, 'userAgent', {
-            get: () => "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        });
-        
-        // Override navigator.platform
-        Object.defineProperty(navigator, 'platform', {
-            get: () => "Win32"
-        });
-        
-        // Override navigator.hardwareConcurrency to a typical PC value
-        Object.defineProperty(navigator, 'hardwareConcurrency', {
-            get: () => 8
-        });
-        
-        // Override navigator.deviceMemory to a typical PC value
-        Object.defineProperty(navigator, 'deviceMemory', {
-            get: () => 8
-        });
-        
-        // Override navigator.maxTouchPoints to 0 (PC typically has no touch points)
-        Object.defineProperty(navigator, 'maxTouchPoints', {
-            get: () => 0
-        });
-        
-        // Override screen dimensions to typical desktop resolution
-        Object.defineProperty(screen, 'width', {
-            get: () => 1920
-        });
-        
-        Object.defineProperty(screen, 'height', {
-            get: () => 1080
-        });
-        
-        // Override window.orientation to undefined (PCs don't have orientation)
-        Object.defineProperty(window, 'orientation', {
-            get: () => undefined
-        });
-        
-        // Override touch events support
-        Object.defineProperty(navigator, 'ontouchstart', {
-            get: () => undefined
-        });
-        
-        // Override vendor to match Windows PC
-        Object.defineProperty(navigator, 'vendor', {
-            get: () => "Google Inc."
-        });
-        
-        // Override device detection methods
-        Object.defineProperty(navigator, 'vendorSub', {
-            get: () => ""
-        });
-        
-        // Override connection properties to match desktop
-        if (navigator.connection) {
-            Object.defineProperty(navigator.connection, 'effectiveType', {
-                get: () => "4g"
-            });
-        }
-    },
-    
-    stop() {
-        // Restore original values if needed
-        // Implementation depends on how you want to handle this
+const originalDescriptors = [];
+
+function overrideGetter(target, key, value) {
+  try {
+    const original = Object.getOwnPropertyDescriptor(target, key);
+
+    originalDescriptors.push({
+      target,
+      key,
+      original
+    });
+
+    Object.defineProperty(target, key, {
+      configurable: true,
+      get: () => value
+    });
+  } catch (err) {
+    console.log(`[PC Device Spoofer] Failed to override ${key}:`, err);
+  }
+}
+
+export const onLoad = () => {
+  console.log("[PC Device Spoofer] Loaded");
+
+  overrideGetter(Navigator.prototype, "userAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+  overrideGetter(Navigator.prototype, "platform", "Win32");
+  overrideGetter(Navigator.prototype, "hardwareConcurrency", 8);
+  overrideGetter(Navigator.prototype, "maxTouchPoints", 0);
+  overrideGetter(Navigator.prototype, "vendor", "Google Inc.");
+
+  if ("screen" in window) {
+    overrideGetter(Screen.prototype, "width", 1920);
+    overrideGetter(Screen.prototype, "height", 1080);
+    overrideGetter(Screen.prototype, "availWidth", 1920);
+    overrideGetter(Screen.prototype, "availHeight", 1040);
+  }
+};
+
+export const onUnload = () => {
+  console.log("[PC Device Spoofer] Unloaded");
+
+  for (const item of originalDescriptors.reverse()) {
+    try {
+      if (item.original) {
+        Object.defineProperty(item.target, item.key, item.original);
+      } else {
+        delete item.target[item.key];
+      }
+    } catch (err) {
+      console.log(`[PC Device Spoofer] Failed to restore ${item.key}:`, err);
     }
+  }
+
+  originalDescriptors.length = 0;
 };
